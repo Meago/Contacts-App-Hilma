@@ -1,5 +1,10 @@
+// This file defines an AllContacts component that renders a list of contacts with their names and phone numbers 
+// The component also allows the user to search, add, edit and delete contacts using axios requests to a backend server 
+// The component uses react-bootstrap components for styling and layout
+
+// Importing relevant components, images, and react-bootstrap components.
 import { useEffect, useState, useRef } from "react";
-import { Container, Table, Row, Col, Button } from "react-bootstrap";
+import { Container, Table, Row, Button } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DeleteConfirmation from "../components/shared/DeleteConfirmation";
@@ -14,34 +19,40 @@ import sicon from '../resources/Icon awesome-search.png';
 
  
 const AllContacts = () => {
-  const [contacts, setContacts] = useState([]);
-  const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [itemIdToDelete, setItemIdToDelete] = useState(0);
-  const [id, setId] = useState(0);
-  var name= useRef("");
-  var phone= useRef("");
+  const [contacts, setContacts] = useState([]);  // define a state variable to store the list of contacts
+  const [showModal, setShowModal] = useState(false); // define a state variable to control the visibility of the deletion modal 
+  const [showEditModal, setShowEditModal] = useState(false); // define a state variable to control the visibility of the editing modal
+  const [showAddModal, setShowAddModal] = useState(false); // define a state variable to control the visibility of the adding modal
+  const [itemIdToDelete, setItemIdToDelete] = useState(0);  // define a state variable to store the id of the contact to be deleted
+  const [id, setId] = useState(0); // define a state variable to store the id of the contact to be edited 
+  var name= useRef(""); // define a ref variable to store the name of the contact to be added or edited 
+  var phone= useRef(""); // define a ref variable to store the phone number of the contact to be added or edited
 
-  
+   // make a GET request to fetch all contacts from the server
+    // update the contacts state with the response data
+     // run this effect only once when the component mounts
   useEffect(() => {
     axios.get("http://localhost:4000/contact/contact").then((response) => {
       setContacts(response.data);
     });
   },[]);
- 
+ // takes an id as a parameter and sets the itemIdToDelete state to that id. 
+ // It also sets the showModal state to true, which opens the deletion modal.
   const openDeleteModalHandler = (id) => {
     setItemIdToDelete(id);
     setShowModal(true);
   };
- 
+ //  sets the itemIdToDelete state to 0 and the showModal state to false, which closes the deletion modal.
   const closeDeleteModalHandler = () => {
     setItemIdToDelete(0);
     setShowModal(false);
   };
   
- 
+ /*
+ This function makes a DELETE request to the server with the itemIdToDelete as a query parameter.
+  It then updates the contacts state by filtering out the deleted contact. 
+ It also sets the itemIdToDelete state to 0 and the showModal state to false, which closes the deletion modal.
+ */
   function confirmDeleteHandler() {
     axios
       .delete(`http://localhost:4000/contact/delete?contactId=${itemIdToDelete}`)
@@ -53,7 +64,12 @@ const AllContacts = () => {
         setShowModal(false);
       });
   }
-
+/*
+ Takes an id as a parameter and sets the showEditModal state to true,
+  which opens the editing modal.
+   It also makes a GET request to the server with the id as a path parameter and gets the contact data. 
+ It then sets the id state to that id and updates the name and phone ref variables with the contact data.
+*/
   const openEditModalHandler = (id) => {
     setShowEditModal(true);
     axios.get(`http://localhost:4000/contact/contact/${id}`).then((response) => {
@@ -63,7 +79,13 @@ const AllContacts = () => {
       phone.current.value = data.phone;
   });
 }
-
+/*
+creates a payload object with the name and phone ref variables as properties. 
+It then makes a PUT request to the server with the id state as a query parameter and the payload as the body.
+ It then makes another GET request to fetch all contacts from the server and
+  updates the contacts state with the response data. 
+It also sets the showEditModal state to false, which closes the editing modal.
+*/
 const updateContactHandler = () => {
   var payload = {
     name: name.current.value,
@@ -77,19 +99,25 @@ const updateContactHandler = () => {
     setShowEditModal(false);
   })
 };
-
+// sets the showEditModal state to false, which closes the editing modal.
 const closeEditModalHandler = () => {
   setShowEditModal(false);
 };
- 
+ //sets the showAddModal state to false, which closes the adding modal.
   const closeAddModalHandler = () => {
     setShowAddModal(false);
   };
-
+//  sets the showAddModal state to true, which opens the adding modal.
   const openAddModalHandler = () => {
     setShowAddModal(true);
 }
-
+/*
+creates a payload object with the name and phone ref variables as properties.
+ It then makes a POST request to the server with the payload as the body.
+  It then makes another GET request to fetch all contacts from the server and
+   updates the contacts state with the response data. 
+It also sets the showAddModal state to false, which closes the adding modal.
+*/
 const addContactHandler = () => {
   var payload = {
     name: name.current.value,
@@ -104,9 +132,11 @@ const addContactHandler = () => {
   })
 };
  
-
-
-
+/*This function takes an event object as a parameter and gets its target value.
+ If it is empty, it makes a GET request to fetch all contacts from the server and updates the contacts state with the response data.
+  Otherwise, it makes a GET request to search for contacts by name or phone number using the target value as a path parameter.
+   It then updates the contacts state with the response data.
+*/
   function searchEvent (evt) {
     if(evt.target.value===""){
       axios.get("http://localhost:4000/contact/contact").then((response) => {
