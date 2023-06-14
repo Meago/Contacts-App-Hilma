@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Container, Table, Row, Col, Button } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DeleteConfirmation from "../components/shared/DeleteConfirmation";
+import EditContact from "../components/shared/EditContact";
+import AddContact from "../components/shared/AddContact";
 import edit from '../resources/edit.svg';
 import del from '../resources/delete.svg';
 import plus from '../resources/Icon feather-plus-circle.svg';
@@ -15,8 +17,14 @@ const AllContacts = () => {
   const [contacts, setContacts] = useState([]);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [itemIdToDelete, setItemIdToDelete] = useState(0);
- 
+  const [id, setId] = useState(0);
+  var name= useRef("");
+  var phone= useRef("");
+
+  
   useEffect(() => {
     axios.get("http://localhost:4000/contact/contact").then((response) => {
       setContacts(response.data);
@@ -46,6 +54,59 @@ const AllContacts = () => {
       });
   }
 
+  const openEditModalHandler = (id) => {
+    setShowEditModal(true);
+    axios.get(`http://localhost:4000/contact/contact/${id}`).then((response) => {
+      let data = response.data;
+      setId(id);
+      name.current.value = data.name;
+      phone.current.value = data.phone;
+  });
+}
+
+const updateContactHandler = () => {
+  var payload = {
+    name: name.current.value,
+    phone: phone.current.value,
+  };
+  axios.put(`http://localhost:4000/contact/update?contactId=${id}` , payload)
+  .then(() => {
+    axios.get("http://localhost:4000/contact/contact").then((response) => {
+      setContacts(response.data);
+    });
+    setShowEditModal(false);
+  })
+};
+
+const closeEditModalHandler = () => {
+  setShowEditModal(false);
+};
+ 
+  const closeAddModalHandler = () => {
+    setShowAddModal(false);
+  };
+
+  const openAddModalHandler = () => {
+    setShowAddModal(true);
+}
+
+const addContactHandler = () => {
+  var payload = {
+    name: name.current.value,
+    phone: phone.current.value,
+  };
+  axios.post("http://localhost:4000/contact/create", payload)
+  .then(() => {
+    axios.get("http://localhost:4000/contact/contact").then((response) => {
+      setContacts(response.data);
+    });
+    setShowAddModal(false);
+  })
+};
+ 
+
+
+
   function searchEvent (evt) {
     if(evt.target.value===""){
       axios.get("http://localhost:4000/contact/contact").then((response) => {
@@ -60,46 +121,70 @@ const AllContacts = () => {
   return (
     <>
       <DeleteConfirmation
-        title="Delete Confimation!"
-        body="Are sure to delete this item"
+        title="אישור מחיקה"
+        body="האם אתה בטוח שברצונך למחוק פריט זה?"
         showModal={showModal}
         closeDeleteModalHandler={closeDeleteModalHandler}
         confirmDeleteHandler={confirmDeleteHandler}
       ></DeleteConfirmation>
+
+      <EditContact
+        title="עריכת איש קשר"
+        showEditModal={showEditModal}
+        closeEditModalHandler={closeEditModalHandler}
+        updateContactHandler={updateContactHandler}
+        name={name}
+        phone={phone}
+      ></EditContact>
+
+<AddContact
+        title="יצירת איש קשר"
+        showAddModal={showAddModal}
+        closeAddModalHandler={closeAddModalHandler}
+        addContactHandler={addContactHandler}
+        name={name}
+        phone={phone}
+      ></AddContact>
+
+
       <Container className="mt-2" dir="rtl">
+        <br/>
+        <br/>
+        <br/>
         <Row style={{font:"30px Heebo", color: "#A5A4BF"}}>
           אנשי קשר
         </Row>
         <Row>
-          <Col>
             <input type="text" placeholder="חיפוש" id="myInput" onChange={ searchEvent }
              style={{ backgroundImage: `url(${sicon})`,
              backgroundPosition: "1% 50%",
-             backgroundSize: "4%",
+             backgroundSize: "2%",
              backgroundRepeat: "no-repeat",
              borderRadius: "15px",
              border: "2px solid #ccc",
-             width: "150%"
+             width: "80%"
               }}></input>
-        </Col>
-          <Col className="col-md-4 offset-md-4">
+          
             <Button
               style={ { borderRadius: "100%",
                border:'none',
                 background:"#EE7E54 0% 0% no-repeat padding-box",
                  boxShadow: "0px 3px 6px #00000029",
               position: "relative",
+              right: "15%",
               padding: "1% 1%",
-              right: "190%" }}
+              textAlign: "center",
+              width:"30px",
+              height:"30px"
+               }}
               variant="primary"
               type="button"
-              onClick={() => navigate("/add-contact")}
+              onClick={() => openAddModalHandler()}
             >
-              <img src={plus} alt= "buttonpng" style={{ width: "50%", height: "50%"}}/>
+              <img src={plus} alt= "buttonpng" style={{height:"150%",display:"block"}} />
             </Button>
-          </Col>
         </Row>
-        <Table striped bordered hover>
+        <Table striped hover>
           <thead>
             <tr>
               <th>שם</th>
@@ -120,12 +205,12 @@ const AllContacts = () => {
                 }} alt=""/>
                  
                 </td>
-                <td>
+                <td style={{textAlign:"center"}}>
                   <img src={edit} onClick={() => {
-                    navigate(`/edit-contact/${emp._id}`);
+                    openEditModalHandler(emp._id);
+                    setId(emp.id);
                 }} alt=""/>
-                </td>
-                  <td>
+                &emsp;
                   <img src={del} onClick={() => {
                       openDeleteModalHandler(emp._id);
                 }} alt=""/>

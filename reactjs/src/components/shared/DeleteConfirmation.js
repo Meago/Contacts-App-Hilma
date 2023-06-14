@@ -9,6 +9,7 @@ const DeleteConfirmation = (props) => {
         onHide={() => {
           props.closeDeleteModalHandler();
         }}
+        dir="rtl"
       >
         <Modal.Header closeButton>
           <Modal.Title>{props.title}</Modal.Title>
@@ -21,7 +22,7 @@ const DeleteConfirmation = (props) => {
               props.closeDeleteModalHandler();
             }}
           >
-            Close
+            סגור
           </Button>
           <Button
             variant="danger"
@@ -29,7 +30,7 @@ const DeleteConfirmation = (props) => {
               props.confirmDeleteHandler();
             }}
           >
-            Confirm Delete
+            מאשר
           </Button>
         </Modal.Footer>
       </Modal>
